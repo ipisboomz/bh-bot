@@ -4,22 +4,36 @@ import Tesseract from 'tesseract.js';
 import robot from 'robotjs';
 import sharp from 'sharp';
 import chalk from 'chalk';
+import fs from 'fs';
+import csv from 'csvtojson';
 
-const CHAR_NAME = process.argv[3] || 'Ipis';
 const WINDOW_TITLE = process.argv[2] || 'Boomz';
+const CHAR_NAME = process.argv[3] || 'Ipis';
+const lang = process.argv[4] || 'eng';
+
+const texts = (await csv().fromFile('./text.csv')).reduce((t, i) => {
+  return {...t, [i.key]: i[lang] || i['eng']};
+}, {});
+
+const DECLINE_INVITES = [texts.ranked, texts.attack, texts.ruins, texts.forest];
+const ACCEPTED_INVITES = [texts.maze, texts.swarm, texts.snow];
+
+async function wait(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
 
 async function getWindow(windowName) {
-  // 1. Find window by name
   const windows = windowManager.getWindows();
-  const targetWin = windows.find(w => w.getTitle().includes(windowName));
+  const targetWin = windows.find(w => w.getTitle() === windowName);
 
   if (!targetWin) {
-    // console.log("Window not found.");
     return;
   }
-  targetWin.setBounds({ x: 0, y: 0, height: 1080 + 32 });
+  console.log('Window found: ', targetWin.getTitle());
   targetWin.bringToTop();
-  await wait(500);
+  await wait(5);
+  targetWin.setBounds({ x: 0, y: 0, height: 1080 + 32 });
+  await wait(5);
   return targetWin;
 }
 
@@ -28,18 +42,14 @@ function log(key, text, chalkColor) {
   console.log(`${new Date().toLocaleTimeString()} ${color(key)}: ${text}`);
 }
 
-async function wait(ms) {
-  return new Promise(resolve => setTimeout(resolve, ms));
-}
-
 async function getInvitesNew(ctx) {
   const { text } = await ctx.getText(1985, 233, 340, 38);
-  if (['Ranked', 'Attack', 'Ruins', 'Forest'].find(x => text.includes(x))) {
+  if (DECLINE_INVITES.find(x => text.includes(x))) {
     ctx.sendClick(2377, 255);
     log('Declined', text, chalk.red);
     await ctx.getText(1860, 166, 472, 108, true);
   }
-  if (['Maze', 'Swarm', 'Snow'].find(x => text.includes(x) && text.includes('10'))) {
+  if (ACCEPTED_INVITES.find(x => text.includes(x) && text.includes('10'))) {
     ctx.sendClick(2470, 255);
     log('Accepted', text, chalk.green);
     await ctx.getText(1860, 166, 472, 108, true);
@@ -48,12 +58,12 @@ async function getInvitesNew(ctx) {
 
 async function getConnection(ctx) {
   const { text } = await ctx.getText(1080, 520, 400, 85);
-  if (text?.includes?.('Connection')) {
+  if (text?.includes?.(texts.connection)) {
     await ctx.sendClick(1270, 905);
     log('Reconnect', text, chalk.red);
   }
   const { text: error } = await ctx.getText(978, 537, 278, 40);
-  if (error?.includes?.('Network')) {
+  if (error?.includes?.(texts.network)) {
     await ctx.sendClick(1520, 905);
     log('Reconnect', error, chalk.red);
   }
@@ -61,7 +71,7 @@ async function getConnection(ctx) {
 
 async function getMaintenanceNotice(ctx) {
   const { text } = await ctx.getText(175, 1018, 130, 35);
-  if (text?.includes?.('Connect')) {
+  if (text?.includes?.(texts.connect)) {
     ctx.sendClick(216, 1020);
     log('Attempts to Connect', attText, chalk.red);
   }
@@ -69,7 +79,7 @@ async function getMaintenanceNotice(ctx) {
 
 async function checkIfCanExit(ctx) {
   const { text } = await ctx.getText(1335, 920, 112, 30);
-  if (text?.includes?.('Exit')) {
+  if (text?.includes?.(texts.exit)) {
     await ctx.sendClick(1390, 900);
     await wait(500);
     await ctx.sendClick(1520, 900);
@@ -79,7 +89,7 @@ async function checkIfCanExit(ctx) {
 
 async function checkIfCanExitV2(ctx) {
   const { text } = await ctx.getText(930, 930, 112, 30);
-  if (text?.includes?.('Exit')) {
+  if (text?.includes?.(texts.exit)) {
     await ctx.sendClick(985, 900);
     await wait(500);
     await ctx.sendClick(1520, 900);
@@ -89,9 +99,9 @@ async function checkIfCanExitV2(ctx) {
 
 async function getCurrentRoom(ctx, prevRoom, roomTime = 0) {
   let time = 0
-  const blackList = ['Ranked', 'Guild'];
-  const whiteList = ['Bug', 'Mine', 'Snow', 'Forest', 'Ruins'];
-  const { text } = await ctx.getText(2008, 852, 235, 35);
+  const blackList = [texts.ranked, texts.guild];
+  const whiteList = [texts.bug, texts.mine, texts.snow, texts.forest, texts.ruins];
+  const { text } = await ctx.getText(2006, 850, 240, 42);
   if (blackList.find(x => text?.includes?.(x))) {
     // log('Current Room', text, chalk.cyan);
     await checkIfCanExit(ctx);
@@ -99,8 +109,8 @@ async function getCurrentRoom(ctx, prevRoom, roomTime = 0) {
   }
   if(whiteList.find(x => text?.includes?.(x))) {
     if (text && text?.length > 4 && prevRoom === text) {
-      time = roomTime + 1;
       // log(`Stayed in Room ${text} for`, time, chalk.yellow);
+      time = roomTime + 1;
     }
     if (time >= 10) {
       log('Stayed in Room for long time', text, chalk.red);
@@ -115,7 +125,7 @@ async function getCurrentRoom(ctx, prevRoom, roomTime = 0) {
 
 async function cancelIfMatching(ctx) {
   const { text } = await ctx.getText(1940, 1020, 240, 35);
-  if (['Cancel'].find(x => text?.includes?.(x))) {
+  if ([texts.cancel].find(x => text?.includes?.(x))) {
     await ctx.sendClick(2062, 1040);
     log('Cancelled Matchmaking', text, chalk.yellow);
   }
@@ -123,6 +133,7 @@ async function cancelIfMatching(ctx) {
 
 async function checkChestOpen(ctx) {
   const { text } = await ctx.getText(860, 670, 68, 28);
+  // TODO: check logic
   if (text?.includes?.('h') && text?.includes?.('83')) {
     await ctx.sendClick(860, 670);
     await wait(1000);
@@ -165,13 +176,13 @@ async function main(targetWin, state) {
         })
         .toBuffer();
 
-      const { data: { text } } = await Tesseract.recognize(croppedImg, 'eng');
+      const { data: { text } } = await Tesseract.recognize(croppedImg, lang);
       if (save) {
         await sharp(croppedImg).toFile(`./tmp/${new Date().toLocaleString().replace(/[:\/, ]/g, '-').replace(/--/g, ' ')}.png`);
       }
       return {
         image: croppedImg,
-        text: text?.trim?.() ?? ''
+        text: text?.trim?.()?.replace?.(/s+/g,'') ?? ''
       }
     }
 

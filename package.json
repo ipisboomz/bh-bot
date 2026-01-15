@@ -12,6 +12,7 @@
   "description": "",
   "dependencies": {
     "chalk": "^5.6.2",
+    "csvtojson": "^2.0.14",
     "get-windows": "^9.2.3",
     "jsdom": "^27.4.0",
     "node-window-manager": "^2.2.4",
