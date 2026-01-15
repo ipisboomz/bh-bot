@@ -10,7 +10,7 @@
   -  Interface scaling 100%
  
 - npm install
-- const targetWin = await getWindow("Boomz"); // Replace your bluestack window name
+- `const targetWin = await getWindow("Boomz"); // Replace your bluestack window name`
 - npm start  
 
 ### Features
