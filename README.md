@@ -10,8 +10,8 @@
   -  Interface scaling 100%
  
 - npm install
-- `const targetWin = await getWindow("Boomz"); // Replace your bluestack window name`
-- npm start  
+- npm start  -- NAME_OF_BLUESTACK_WINDOW CHARACTER_NAME
+- npm start -- "Bluestack 5" "Ipis"
 
 ## :sparkles: Current Features:
 
