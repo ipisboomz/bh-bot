@@ -23,6 +23,7 @@
 
 ### TODO
 
-- Auto collect trash in queare
+- Auto collect trash in squere
 - Auto complete Square tasks
 - Multi language support
+- Dynamic reslution support
