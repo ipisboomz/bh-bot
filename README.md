@@ -10,15 +10,15 @@
   -  Interface scaling 100%
  
 - npm install
-- npm start  -- NAME_OF_BLUESTACK_WINDOW CHARACTER_NAME LANGUAGE
+- npm start  -- NAME_OF_BLUESTACK_WINDOW CHARACTER_NAME LANGUAGE HEIGHT
 
 ### Example commands
 
 - Check text.csv for language supports
 - For English
-- npm start -- "Bluestack 5" "Ipis" "eng"
+- npm start -- "Bluestack 5" "Ipis" "eng" 1080
 - For Chinese simplified
-- npm start -- "Bluestack 5" "Ipis" "chi_sim"
+- npm start -- "Bluestack 5" "Ipis" "chi_sim" 720
 - Note, Chinese not fully supported, need code adjustments
 
 ## :sparkles: Current Features:

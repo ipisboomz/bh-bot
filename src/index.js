@@ -10,13 +10,27 @@ import csv from 'csvtojson';
 const WINDOW_TITLE = process.argv[2] || 'Boomz';
 const CHAR_NAME = process.argv[3] || 'Ipis';
 const lang = process.argv[4] || 'eng';
+const height = parseInt(process.argv[5]) || 720;
 
 const texts = (await csv().fromFile('./text.csv')).reduce((t, i) => {
   return {...t, [i.key]: i[lang] || i['eng']};
 }, {});
 
-const DECLINE_INVITES = [texts.ranked, texts.attack, texts.ruins, texts.forest];
+const DECLINE_INVITES = [texts.ranked, texts.attack, texts.ruin, texts.fore];
 const ACCEPTED_INVITES = [texts.maze, texts.swarm, texts.snow];
+const TITLE_HEIGHT = 32;
+const HEIGHT = height || 720;
+const SCALE = HEIGHT / 1080;
+const WIDTH = Math.round(2560 * SCALE);
+
+function getScaleY(y, scale = true) {
+  const result = TITLE_HEIGHT + Math.round((y - TITLE_HEIGHT) * (scale ? SCALE : 1));
+  return result;
+}
+function getScale(x, scale = true) {
+  const result = Math.round(x * (scale ? SCALE : 1));
+  return result;
+}
 
 async function wait(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
@@ -32,8 +46,9 @@ async function getWindow(windowName) {
   console.log('Window found: ', targetWin.getTitle());
   targetWin.bringToTop();
   await wait(5);
-  targetWin.setBounds({ x: 0, y: 0, height: 1080 + 32 });
+  targetWin.setBounds({ x: 0, y: 0, height: HEIGHT + TITLE_HEIGHT, width: WIDTH });
   await wait(5);
+  console.log(targetWin.getBounds())
   return targetWin;
 }
 
@@ -100,17 +115,22 @@ async function checkIfCanExitV2(ctx) {
 async function getCurrentRoom(ctx, prevRoom, roomTime = 0) {
   let time = 0
   const blackList = [texts.ranked, texts.guild];
-  const whiteList = [texts.bug, texts.mine, texts.snow, texts.forest, texts.ruins];
+  const whiteList = [texts.bug, texts.mine, texts.snow, texts.fore, texts.ruin];
   const { text } = await ctx.getText(2006, 850, 240, 42);
+  // log('Current Room', text, chalk.cyan);
   if (blackList.find(x => text?.includes?.(x))) {
-    // log('Current Room', text, chalk.cyan);
     await checkIfCanExit(ctx);
     await checkIfCanExitV2(ctx);
+    if(text !== prevRoom) {
+      log('Room Changed', text, chalk.yellow);
+    }
   }
   if(whiteList.find(x => text?.includes?.(x))) {
     if (text && text?.length > 4 && prevRoom === text) {
       // log(`Stayed in Room ${text} for`, time, chalk.yellow);
       time = roomTime + 1;
+    } else {
+      log('Room Changed', text, chalk.yellow);
     }
     if (time >= 10) {
       log('Stayed in Room for long time', text, chalk.red);
@@ -149,7 +169,7 @@ async function checkIfStuck(ctx, prevText, prevTime = 0) {
     time = prevTime + 1;
     if (time > 5) {
       log('Restarting Game due to being stuck', text, chalk.red);
-      await ctx.sendClick(266, 14);
+      await ctx.sendClick(266, 14, false);
       await wait(500);
       await ctx.swipe(1300, 890, 1300, 45);
       await wait(1000);
@@ -169,10 +189,10 @@ async function main(targetWin, state) {
     async function getText(x1, y1, width, height, save) {
       const croppedImg = await baseImg.clone()
         .extract({
-          left: Math.max(0, bounds.x + x1),
-          top: Math.max(0, bounds.y + y1),
-          width,
-          height,
+          left: Math.max(0, bounds.x + getScale(x1)),
+          top: Math.max(0, bounds.y + getScaleY(y1)),
+          width: getScale(width),
+          height: getScale(height),
         })
         .toBuffer();
 
@@ -186,17 +206,17 @@ async function main(targetWin, state) {
       }
     }
 
-    async function sendClick(x, y) {
-      robot.moveMouse(bounds.x + x, bounds.y + y);
+    async function sendClick(x, y, scale = true) {
+      robot.moveMouse(bounds.x + getScale(x, scale), bounds.y + getScaleY(y, scale));
       await new Promise(resolve => setTimeout(resolve, 10));
       robot.mouseClick();
     }
 
     async function swipe(x1, y1, x2, y2, speed = 30) {
-        const startX = bounds.x + x1;
-        const startY = bounds.y + y1;
-        const endX = bounds.x + x2;
-        const endY = bounds.y + y2;
+        const startX = bounds.x + getScale(x1);
+        const startY = bounds.y + getScaleY(y1);
+        const endX = bounds.x + getScale(x2);
+        const endY = bounds.y + getScaleY(y2);
         // 1. Move to start and press down
         robot.moveMouse(bounds.x + startX, bounds.y + startY);
         robot.mouseToggle("down", "left");
