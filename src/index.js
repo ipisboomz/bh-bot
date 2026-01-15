@@ -97,7 +97,7 @@ async function getCurrentRoom(ctx, prevRoom, roomTime = 0) {
   if(whiteList.find(x => text?.includes?.(x))) {
     if (text && text?.length > 4 && prevRoom === text) {
       time = roomTime + 1;
-      log(`Stayed in Room ${text} for`, time, chalk.yellow);
+      // log(`Stayed in Room ${text} for`, time, chalk.yellow);
     }
     if (time >= 10) {
       log('Stayed in Room for long time', text, chalk.red);
