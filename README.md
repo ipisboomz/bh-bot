@@ -10,19 +10,19 @@
   -  Interface scaling 100%
  
 - npm install
-- const targetWin = await getWindow("Boomz"); // Replace your bluestack window name
+- `const targetWin = await getWindow("Boomz"); // Replace your bluestack window name`
 - npm start  
 
-### Features
+## :sparkles: Current Features:
 
-- It support English only atm
-- Auto detect invites and will accept it Mines-10,Bug Nest-10, Snow Mountain-10
-- Auto detect if there is connection problem, it will try to reconnect
-- Auto collect chest/ballistar
-- Auto declinse blacklisted invites like Rank/Guild Attack
+- :earth_africa: Language: English support (current).
+- :white_check_mark: Auto-Accept: Instantly joins invites for Mines-10, Bug Nest-10, and Snow Mountain-10.
+- :shield: Blacklist: Automatically declines Rank and Guild Attack invites.
+- :arrows_counterclockwise: Auto-Reconnect: Detects connection issues and tries to jump back in.
+- :gift: Auto-Loot: Automatically collects Chests and Ballistar rewards.
 
-### TODO
+## :rocket: Coming Soon (To-Do):
 
-- Auto collect trash in queare
-- Auto complete Square tasks
-- Multi language support
+- :broom: Square trash collection.
+- :pencil: Square task automation.
+- :globe_with_meridians: Multi-language & dynamic resolution support.
