@@ -5,6 +5,9 @@ import robot from 'robotjs';
 import sharp from 'sharp';
 import chalk from 'chalk';
 
+const CHAR_NAME = process.argv[3] || 'Ipis';
+const WINDOW_TITLE = process.argv[2] || 'Boomz';
+
 async function getWindow(windowName) {
   // 1. Find window by name
   const windows = windowManager.getWindows();
@@ -131,7 +134,7 @@ async function checkChestOpen(ctx) {
 async function checkIfStuck(ctx, prevText, prevTime = 0) {
   const { text } = await ctx.getText(1440, 864, 146, 40);
   let time = 0;
-  if (text === 'Ipis' && text === prevText) {
+  if (text === CHAR_NAME && text === prevText) {
     time = prevTime + 1;
     if (time > 5) {
       log('Restarting Game due to being stuck', text, chalk.red);
@@ -230,11 +233,16 @@ async function main(targetWin, state) {
   }
 }
 
-const targetWin = await getWindow("Boomz");
+const targetWin = await getWindow(WINDOW_TITLE);
+
+log('Target Window', WINDOW_TITLE, chalk.cyan);
+
 if (!targetWin) {
   console.error("Target window not found. Exiting.");
   process.exit(1);
 }
+
+log('Note!','Keep window on top and active before you afk', chalk.yellow);
 
 let state = {
   counter: 0,
