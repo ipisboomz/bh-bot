@@ -179,7 +179,7 @@ async function checkIfStuck(ctx, prevText, prevTime = 0) {
   const { text } = await ctx.getText(1140, 238, 305, 38);
   const result = text && whiteList.find(x => text.includes(x))
   let time = 0;
-  if (text && result === prevText) {
+  if (text && result && text === prevText) {
     time = prevTime + 1;
     log('Loading '+text, time, chalk.yellow);
     if (time > 5) {
