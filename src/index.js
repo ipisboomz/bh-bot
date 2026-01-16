@@ -4,13 +4,24 @@ import Tesseract from 'tesseract.js';
 import robot from 'robotjs';
 import sharp from 'sharp';
 import chalk from 'chalk';
-import fs from 'fs';
 import csv from 'csvtojson';
 
 const WINDOW_TITLE = process.argv[2] || 'Boomz';
-const CHAR_NAME = process.argv[3] || 'Ipis';
-const lang = process.argv[4] || 'eng';
-const height = parseInt(process.argv[5]) || 720;
+const lang = process.argv[3] || 'eng';
+const height = parseInt(process.argv[4]) || 720;
+const __dev = process.argv[5] === '1';
+
+// Tesseract.setLogging(false);
+// const worker = await Tesseract.createWorker(lang, Tesseract.OEM.LSTM_ONLY, {
+//   logger: () => {},
+//   errorHandler: () => {},
+// });
+
+// worker.setParameters({
+//   tessedit_pageseg_mode: Tesseract.PSM.SINGLE_LINE,
+//   preserve_interword_spaces: '1',
+//   user_defined_dpi: 160,
+// });
 
 const texts = (await csv().fromFile('./text.csv')).reduce((t, i) => {
   return {...t, [i.key]: i[lang] || i['eng']};
@@ -46,7 +57,7 @@ async function getWindow(windowName) {
   console.log('Window found: ', targetWin.getTitle());
   targetWin.bringToTop();
   await wait(5);
-  targetWin.setBounds({ x: 0, y: 0, height: HEIGHT + TITLE_HEIGHT, width: WIDTH });
+  targetWin.setBounds({ x: 0, y: 0, height: HEIGHT + TITLE_HEIGHT + 2, width: WIDTH + 2});
   await wait(5);
   console.log(targetWin.getBounds())
   return targetWin;
@@ -116,7 +127,7 @@ async function getCurrentRoom(ctx, prevRoom, roomTime = 0) {
   let time = 0
   const blackList = [texts.ranked, texts.guild];
   const whiteList = [texts.bug, texts.mine, texts.snow, texts.fore, texts.ruin];
-  const { text } = await ctx.getText(2006, 850, 240, 42);
+  const { text } = await ctx.getText(2006, 850, 250, 42);
   // log('Current Room', text, chalk.cyan);
   if (blackList.find(x => text?.includes?.(x))) {
     await checkIfCanExit(ctx);
@@ -153,8 +164,9 @@ async function cancelIfMatching(ctx) {
 
 async function checkChestOpen(ctx) {
   const { text } = await ctx.getText(860, 670, 68, 28);
+  // log('Chest', text, chalk.reset);
   // TODO: check logic
-  if (text?.includes?.('h') && text?.includes?.('83')) {
+  if (text?.includes?.('h') && text?.includes?.('7')) {
     await ctx.sendClick(860, 670);
     await wait(1000);
     await ctx.sendClick(860, 670);
@@ -163,10 +175,13 @@ async function checkChestOpen(ctx) {
 }
 
 async function checkIfStuck(ctx, prevText, prevTime = 0) {
-  const { text } = await ctx.getText(1440, 864, 146, 40);
+  const whiteList = [texts.city, texts.maze, texts.mountain, texts.battle, texts.raid, texts.forest];
+  const { text } = await ctx.getText(1140, 238, 305, 38);
+  const result = text && whiteList.find(x => text.includes(x))
   let time = 0;
-  if (text === CHAR_NAME && text === prevText) {
+  if (text && result === prevText) {
     time = prevTime + 1;
+    log('Loading '+text, time, chalk.yellow);
     if (time > 5) {
       log('Restarting Game due to being stuck', text, chalk.red);
       await ctx.sendClick(266, 14, false);
@@ -194,15 +209,17 @@ async function main(targetWin, state) {
           width: getScale(width),
           height: getScale(height),
         })
+        .sharpen({ sigma: 1.5, m1: 1, m2: 3, x1: 2, y2: 10, y3: 20 })
         .toBuffer();
 
       const { data: { text } } = await Tesseract.recognize(croppedImg, lang);
-      if (save) {
+      const cleanText =  (text ?? '').trim().replaceAll(' ','') ;
+      if (save || (__dev && cleanText && cleanText?.length >= 3))  {
         await sharp(croppedImg).toFile(`./tmp/${new Date().toLocaleString().replace(/[:\/, ]/g, '-').replace(/--/g, ' ')}.png`);
       }
       return {
         image: croppedImg,
-        text: text?.trim?.()?.replace?.(/s+/g,'') ?? ''
+        text: cleanText,
       }
     }
 
