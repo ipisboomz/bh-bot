@@ -9,7 +9,8 @@ import csv from 'csvtojson';
 const WINDOW_TITLE = process.argv[2] || 'Boomz';
 const lang = process.argv[3] || 'eng';
 const height = parseInt(process.argv[4]) || 720;
-const __dev = process.argv[5] === '1';
+const title = parseInt(process.argv[5]) || 32;
+const __dev = process.argv[6] === '1';
 
 // Tesseract.setLogging(false);
 // const worker = await Tesseract.createWorker(lang, Tesseract.OEM.LSTM_ONLY, {
@@ -29,8 +30,8 @@ const texts = (await csv().fromFile('./text.csv')).reduce((t, i) => {
 
 const DECLINE_INVITES = [texts.ranked, texts.attack, texts.ruin, texts.fore];
 const ACCEPTED_INVITES = [texts.maze, texts.swarm, texts.snow];
-const TITLE_HEIGHT = 32;
-const HEIGHT = height || 720;
+const TITLE_HEIGHT = title;
+const HEIGHT = height;
 const SCALE = HEIGHT / 1080;
 const WIDTH = Math.round(2560 * SCALE);
 
