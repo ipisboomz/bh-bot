@@ -24,7 +24,7 @@
   - 1080
   - 720
   - 540
-- TITLE_HEIGHT: Window title bar height (default 720)
+- TITLE_HEIGHT: Window title bar height (default 32)
   - 32
 
 ### Example commands
