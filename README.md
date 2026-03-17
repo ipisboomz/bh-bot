@@ -10,15 +10,32 @@
   -  Interface scaling 100%
  
 - npm install
-- npm start  -- NAME_OF_BLUESTACK_WINDOW CHARACTER_NAME LANGUAGE
+- npm start  -- WINDOW_TITLE LANGUAGE HEIGHT TITLE_HEIGHT
+
+### Parameters
+
+- WINDOW_TITLE: Window title
+  - Bluestack App Player
+  - Android 11
+  - Android 13 (Beta)
+- LANGUAGE: Game language (defaul eng)
+  - eng
+- HEIGHT: Window height (default 1080)
+  - 1080
+  - 720
+  - 540
+- TITLE_HEIGHT: Window title bar height (default 32)
+  - 32
 
 ### Example commands
 
 - Check text.csv for language supports
-- For English
-- npm start -- "Bluestack 5" "Ipis" "eng"
+- For English Exmple:
+  - npm start -- "Bluestack App Player"
+  - npm start -- "Bluestack App Player" eng 720
+  - npm start -- "Android 13 (Beta)" eng 540 32
 - For Chinese simplified
-- npm start -- "Bluestack 5" "Ipis" "chi_sim"
+  - npm start -- "Bluestack App Player" chi_sim 720
 - Note, Chinese not fully supported, need code adjustments
 
 ## :sparkles: Current Features:
